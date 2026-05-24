@@ -10,6 +10,12 @@ from keep_alive import keep_alive
 
 TOKEN = os.getenv("TOKEN")
 
+ALLOWED_ROLES = [
+    "...",
+    "BİG BOSS",
+    "X"
+]
+
 RULES_TEXT = (
     "• POV almak kesinlikle zorunludur.\n"
     "• No Stamina, No Bush, No Prop gibi avantaj sağlayacak şeyler yasaktır.\n"
@@ -226,6 +232,15 @@ async def etkinlik_olustur(
     saat: str
 ):
 
+user_roles = [role.name for role in interaction.user.roles]
+
+if not any(role in ALLOWED_ROLES for role in user_roles):
+    await interaction.response.send_message(
+        "❌ Yetkin yok.",
+        ephemeral=True
+    )
+    return
+    
     if not interaction.user.guild_permissions.administrator:
         await interaction.response.send_message(
             "❌ Bu komutu yalnızca yöneticiler kullanabilir.",
