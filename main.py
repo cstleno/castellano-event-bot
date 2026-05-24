@@ -3,6 +3,7 @@ import discord
 from discord.ext import commands
 from discord import app_commands
 from keep_alive import keep_alive
+from datetime import datetime
 
 # =========================
 # AYARLAR
@@ -10,11 +11,8 @@ from keep_alive import keep_alive
 
 TOKEN = os.getenv("TOKEN")
 
-ALLOWED_ROLES = [
-    "...",
-    "BİG BOSS",
-    "X"
-]
+if not TOKEN:
+    raise ValueError("TOKEN bulunamadı.")
 
 RULES_TEXT = (
     "• POV almak kesinlikle zorunludur.\n"
@@ -33,6 +31,7 @@ DEFAULT_THUMBNAIL = "https://cdn.discordapp.com/attachments/1507099588522410026/
 
 intents = discord.Intents.default()
 intents.members = True
+intents.message_content = True
 
 bot = commands.Bot(
     command_prefix="!",
@@ -217,7 +216,6 @@ class EventView(discord.ui.View):
     name="etkinlik_olustur",
     description="Yeni etkinlik oluştur."
 )
-@app_commands.default_permissions(administrator=True)
 @app_commands.describe(
     baslik="Etkinlik başlığı",
     aciklama="Etkinlik açıklaması",
@@ -232,18 +230,17 @@ async def etkinlik_olustur(
     saat: str
 ):
 
-user_roles = [role.name for role in interaction.user.roles]
+    ALLOWED_ROLE_IDS = [
+        1478765805159190591,
+        1388474281553428500,
+        1466879124617429236
+    ]
 
-if not any(role in ALLOWED_ROLES for role in user_roles):
-    await interaction.response.send_message(
-        "❌ Yetkin yok.",
-        ephemeral=True
-    )
-    return
-    
-    if not interaction.user.guild_permissions.administrator:
+    user_role_ids = [role.id for role in interaction.user.roles]
+
+    if not any(role_id in ALLOWED_ROLE_IDS for role_id in user_role_ids):
         await interaction.response.send_message(
-            "❌ Bu komutu yalnızca yöneticiler kullanabilir.",
+            "❌ Bu komutu kullanmak için yetkin yok.",
             ephemeral=True
         )
         return
@@ -269,7 +266,7 @@ if not any(role in ALLOWED_ROLES for role in user_roles):
             f"{RULES_TEXT}\n\n"
             f"━━━━━━━━━━━━━━━━━━\n"
             f"👥 **GEREKLİ KİŞİ:** {gerekli_kisi}\n"
-            f"✅ **KATILAN:** 0\n"
+            f"✅ **KATILAN:** 0/{gerekli_kisi}\n"
             f"📊 **DOLULUK:** %0\n"
             f"❌ **SON AYRILAN:** Yok\n"
         ),
