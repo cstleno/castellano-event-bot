@@ -366,6 +366,42 @@ async def etkinlik_sil(
             ephemeral=True
         )
 
+
+# =========================
+# SES KOMUTLARI
+# =========================
+
+@bot.tree.command(name="sesegir", description="Bulunduğun ses kanalına girer.")
+async def sesegir(interaction: discord.Interaction):
+    if interaction.user.voice is None:
+        await interaction.response.send_message("Önce bir ses kanalına gir.", ephemeral=True)
+        return
+    channel = interaction.user.voice.channel
+    if interaction.guild.voice_client:
+        await interaction.response.send_message("Zaten bir ses kanalındayım.", ephemeral=True)
+        return
+    await channel.connect()
+    await interaction.response.send_message(f"🔊 {channel.name} kanalına girdim.")
+
+@bot.tree.command(name="sescik", description="Ses kanalından çıkar.")
+@app_commands.default_permissions(administrator=True)
+async def sescik(interaction: discord.Interaction):
+    vc = interaction.guild.voice_client
+    if not vc:
+        await interaction.response.send_message("Bir ses kanalında değilim.", ephemeral=True)
+        return
+    await vc.disconnect()
+    await interaction.response.send_message("🔇 Ses kanalından ayrıldım.")
+
+@bot.event
+async def on_voice_state_update(member, before, after):
+    if member.bot:
+        return
+    vc = discord.utils.get(bot.voice_clients, guild=member.guild)
+    if vc and len(vc.channel.members) == 1:
+        pass
+
+
 # =========================
 # BOT HAZIR
 # =========================
